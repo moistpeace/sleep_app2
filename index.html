@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#050607" />
+<title>入眠サウンド・プロトタイプ</title>
+<style>
+:root{color-scheme:dark;--bg:#050607;--panel:#0d1012;--panel2:#11161a;--text:#eef2f3;--muted:#8f9aa0;--line:#252c31;--accent:#dbe5e8;--danger:#8d5a5a}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:780px;margin:0 auto;padding:24px 18px 56px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.title{font-size:28px;font-weight:700;margin:5px 0 8px}.sub{font-size:14px;line-height:1.65;color:var(--muted);max-width:620px}.card{background:linear-gradient(180deg,var(--panel),#0a0d0f);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:16px}.section-title{font-size:15px;font-weight:700;margin-bottom:12px}.start{width:100%;border:0;border-radius:18px;padding:18px 20px;font-size:18px;font-weight:700;background:var(--accent);color:#0c1113;margin-top:20px}.start.running{background:#3b4449;color:white}.small-btn{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.guide{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:12px 0}.guide:last-child{border-bottom:0}.guide-name{font-size:15px}.guide-desc{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}.switch{position:relative;width:48px;height:28px;flex:none}.switch input{display:none}.slider{position:absolute;inset:0;border-radius:20px;background:#30363b;transition:.2s}.slider:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;border-radius:50%;background:#aeb8bd;transition:.2s}.switch input:checked+.slider{background:#d8e1e4}.switch input:checked+.slider:before{transform:translateX(20px);background:#111}.mrow{display:grid;grid-template-columns:110px 1fr 44px;align-items:center;gap:10px;margin:13px 0}.mrow label{font-size:13px}.mrow input[type=range]{width:100%;accent-color:#cfd9dd}.pct{font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);font-size:12px}.session{display:none}.session.visible{display:block}.phase{font-size:13px;color:var(--muted)}.phase-name{font-size:22px;font-weight:700;margin-top:4px}.time{font-size:46px;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin:16px 0 4px}.progress{height:6px;background:#191f23;border-radius:8px;overflow:hidden}.progress>div{height:100%;width:0%;background:#cdd8dc}.controls{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.debug{display:none}.debug.visible{display:block}.debug-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dbg{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px}.dbg-k{font-size:11px;color:var(--muted);margin-bottom:4px}.dbg-v{font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-word}.timeline{margin-top:12px;display:grid;grid-template-columns:58px 1fr;gap:7px 9px;align-items:center}.tl-label{font-size:11px;color:var(--muted)}.tl-track{position:relative;height:17px;background:#12171a;border-radius:8px;overflow:hidden}.event{position:absolute;top:4px;width:8px;height:8px;border-radius:50%;background:#dce6e9;transform:translateX(-4px)}.nowline{position:absolute;left:0;top:0;bottom:0;width:1px;background:#7d8a90}.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px}.statusline{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:12px;margin-top:10px}.dim{opacity:.48}.hidden{display:none!important}
+@media(max-width:580px){.grid,.debug-grid{grid-template-columns:1fr}.title{font-size:24px}.mrow{grid-template-columns:92px 1fr 38px}.time{font-size:40px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><div class="eyebrow">Sleep onset prototype</div><div class="title">入眠サウンド</div><div class="sub">考えごとで寝つきにくい夜向けの試作版です。強いアタックを避け、音・声・情報量を少しずつ減らして30分で無音になります。</div></div>
+    <button class="small-btn" id="debugToggle">デバッグ</button>
+  </div>
+
+  <button class="start" id="startBtn">入眠をはじめる</button>
+
+  <div class="session card" id="sessionCard">
+    <div class="phase">現在のフェーズ</div><div class="phase-name" id="phaseName">—</div>
+    <div class="time" id="timeText">00:00</div><div class="progress"><div id="progressBar"></div></div>
+    <div class="statusline"><span id="voiceStatus">音声: 待機</span><span id="audioStatus">サウンド: 待機</span></div>
+    <div class="controls"><button class="small-btn" id="stopBtn">停止</button><button class="small-btn" id="fadeBtn">今すぐ静かに終える</button></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">入眠ガイド</div>
+    <div class="guide"><div><div class="guide-name">導入</div><div class="guide-desc">眠ろうと努力しなくてよいことを短く案内します。</div></div><label class="switch"><input data-guide="arrival" type="checkbox" checked><span class="slider"></span></label></div>
+    <div class="guide"><div><div class="guide-name">ゆっくり呼吸</div><div class="guide-desc">息止めなし。苦しくない範囲で少しゆっくりした呼吸へ誘導します。</div></div><label class="switch"><input data-guide="breath" type="checkbox" checked><span class="slider"></span></label></div>
+    <div class="guide"><div><div class="guide-name">身体への注意</div><div class="guide-desc">身体の重さやベッドとの接触へ注意を移します。</div></div><label class="switch"><input data-guide="body" type="checkbox" checked><span class="slider"></span></label></div>
+    <div class="guide"><div><div class="guide-name">イメージ誘導</div><div class="guide-desc">短い言葉から簡単なイメージを浮かべ、考えごとから自然に注意を移します。</div></div><label class="switch"><input data-guide="imagery" type="checkbox" checked><span class="slider"></span></label></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">サウンド</div>
+    <div class="mrow"><label>ドローン</label><input type="range" min="0" max="100" value="55" data-mix="drone"><span class="pct" data-pct="drone">55</span></div>
+    <div class="mrow"><label>ボウル</label><input type="range" min="0" max="100" value="55" data-mix="bowl"><span class="pct" data-pct="bowl">55</span></div>
+    <div class="mrow"><label>雨</label><input type="range" min="0" max="100" value="22" data-mix="rain"><span class="pct" data-pct="rain">22</span></div>
+    <div class="mrow"><label>ソフトトーン</label><input type="range" min="0" max="100" value="30" data-mix="tone"><span class="pct" data-pct="tone">30</span></div>
+    <div class="mrow"><label>音声</label><input type="range" min="0" max="100" value="58" data-mix="voice"><span class="pct" data-pct="voice">58</span></div>
+    <button class="small-btn" id="resetMix">おすすめに戻す</button>
+    <div class="hint">各音量は端末内に保存されます。セッション後半では、ここで設定した音量からさらに自動的に静かになります。</div>
+  </div>
+
+  <div class="debug card" id="debugPanel">
+    <div class="section-title">デバッグ表示</div>
+    <div class="debug-grid">
+      <div class="dbg"><div class="dbg-k">現在のレイヤー</div><div class="dbg-v" id="dbgLayers">—</div></div>
+      <div class="dbg"><div class="dbg-k">現在の音</div><div class="dbg-v" id="dbgCurrent">—</div></div>
+      <div class="dbg"><div class="dbg-k">次の音</div><div class="dbg-v" id="dbgNext">—</div></div>
+      <div class="dbg"><div class="dbg-k">音階・使用音</div><div class="dbg-v" id="dbgScale">D major pentatonic / D E F♯ A B</div></div>
+      <div class="dbg"><div class="dbg-k">生成パラメータ</div><div class="dbg-v" id="dbgParams">—</div></div>
+      <div class="dbg"><div class="dbg-k">音声 / 抑制</div><div class="dbg-v" id="dbgVoice">—</div></div>
+    </div>
+    <div class="timeline" id="timeline">
+      <div class="tl-label">Voice</div><div class="tl-track" data-track="voice"><div class="nowline"></div></div>
+      <div class="tl-label">Bowl</div><div class="tl-track" data-track="bowl"><div class="nowline"></div></div>
+      <div class="tl-label">Tone</div><div class="tl-track" data-track="tone"><div class="nowline"></div></div>
+    </div>
+    <div class="hint">右端は約60秒後です。予定イベントは●で表示します。</div>
+  </div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const SESSION_SEC = 30*60;
+  const defaults = {drone:55,bowl:55,rain:22,tone:30,voice:58};
+  const scale = [146.83,164.81,185.00,220.00,246.94]; // D3 E3 F#3 A3 B3
+  const noteNames = ['D3','E3','F♯3','A3','B3'];
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const smooth=t=>t*t*(3-2*t);
+  let ctx=null, master=null, droneGain=null, rainGain=null, bowlBus=null, toneBus=null;
+  let rainSource=null, running=false, startAt=0, raf=0, timer=0, endFade=false;
+  let nextBowl=Infinity,nextTone=Infinity,lastVoiceAt=-999,voiceBusy=false;
+  let currentBowl='—',currentTone='—';
+  let scheduled = {voice:[],bowl:[],tone:[]};
+  let phraseQueue=[], preferredVoice=null;
+
+  function load(){
+    const currentMixVersion=2;
+    let mix=JSON.parse(localStorage.getItem('sleepMix')||'null')||defaults;
+    if(+localStorage.getItem('sleepMixVersion')!==currentMixVersion){mix=defaults;localStorage.setItem('sleepMixVersion',currentMixVersion);localStorage.setItem('sleepMix',JSON.stringify(defaults));}
+    $$('[data-mix]').forEach(el=>{const k=el.dataset.mix;el.value=mix[k] ?? defaults[k];$(`[data-pct="${k}"]`).textContent=el.value;});
+    const g=JSON.parse(localStorage.getItem('sleepGuides')||'null');
+    if(g) $$('[data-guide]').forEach(el=>{ if(el.dataset.guide in g) el.checked=!!g[el.dataset.guide]; });
+  }
+  function saveMix(){const o={};$$('[data-mix]').forEach(e=>o[e.dataset.mix]=+e.value);localStorage.setItem('sleepMix',JSON.stringify(o));}
+  function saveGuides(){const o={};$$('[data-guide]').forEach(e=>o[e.dataset.guide]=e.checked);localStorage.setItem('sleepGuides',JSON.stringify(o));}
+  load();
+  $$('[data-mix]').forEach(el=>el.addEventListener('input',()=>{$(`[data-pct="${el.dataset.mix}"]`).textContent=el.value;saveMix();updateMixNow();}));
+  $$('[data-guide]').forEach(el=>el.addEventListener('change',saveGuides));
+  $('#resetMix').onclick=()=>{$$('[data-mix]').forEach(e=>{e.value=defaults[e.dataset.mix];$(`[data-pct="${e.dataset.mix}"]`).textContent=e.value;});saveMix();updateMixNow();};
+  $('#debugToggle').onclick=()=>$('#debugPanel').classList.toggle('visible');
+
+  function makeGain(v=1){const g=ctx.createGain();g.gain.value=v;return g;}
+  function getMix(k){return +$(`[data-mix="${k}"]`).value/100;}
+  // A small bank of logarithmically spaced oscillators approximates 1/f
+  // modulation without audible periodicity. Amount is expressed in the
+  // native units of the target AudioParam.
+  function connectPinkMod(target,amount,minHz=.004,maxHz=.11,bands=6,stopAt=null){
+    let norm=0; const parts=[];
+    for(let i=0;i<bands;i++){
+      const f=minHz*Math.pow(maxHz/minHz,i/(bands-1));
+      const weight=1/Math.sqrt(f); norm+=weight;
+      parts.push({f,weight,phase:Math.random()*Math.PI*2});
+    }
+    parts.forEach(({f,weight,phase})=>{
+      const o=ctx.createOscillator(),g=makeGain(amount*weight/norm);
+      o.type='sine';o.frequency.value=f*(1+(phase/Math.PI)*.008);o.connect(g).connect(target);o.start();if(stopAt)o.stop(stopAt);
+    });
+  }
+  function pinkTiming(t,salt=0){
+    const fs=[.006,.013,.027,.061],ws=[1,.72,.50,.34];let v=0,n=0;
+    fs.forEach((f,i)=>{v+=ws[i]*Math.sin(2*Math.PI*f*t+salt*(i+1)*1.73);n+=ws[i];});
+    return v/n;
+  }
+  function perceptualFade(t){
+    // relative dB curve: 0, -1, -3, -6, -10, -18, -28, silence
+    const pts=[[0,0],[300,-1],[600,-3],[900,-6],[1200,-10],[1500,-18],[1680,-28],[1800,-70]];
+    let db=-70;
+    for(let i=0;i<pts.length-1;i++){if(t>=pts[i][0]&&t<=pts[i+1][0]){const u=(t-pts[i][0])/(pts[i+1][0]-pts[i][0]);db=lerp(pts[i][1],pts[i+1][1],smooth(u));break;}}
+    return Math.pow(10,db/20);
+  }
+  function infoParams(t){
+    const p=clamp(t/SESSION_SEC,0,1);
+    return {
+      novelty: lerp(.30,0,p), density: lerp(1,.12,smooth(p)), brightness: lerp(1,.42,smooth(p)), fade: perceptualFade(t)
+    };
+  }
+  function phaseAt(t){
+    const enabled=$$('[data-guide]').filter(e=>e.checked).map(e=>e.dataset.guide);
+    const durations={arrival:120,breath:240,body:240,imagery:420};
+    let cursor=30;
+    for(const id of enabled){ const end=cursor+durations[id]; if(t>=cursor && t<end) return {id,start:cursor,end}; cursor=end; }
+    return {id:'music',start:cursor,end:SESSION_SEC};
+  }
+  const phaseJa={arrival:'導入',breath:'ゆっくり呼吸',body:'身体への注意',imagery:'イメージ誘導',music:'音楽のみ'};
+
+  async function initAudio(){
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    await ctx.resume();
+    master=makeGain(.72);master.connect(ctx.destination);
+    droneGain=makeGain(.0);droneGain.connect(master);
+    bowlBus=makeGain(.0);bowlBus.connect(master);
+    toneBus=makeGain(.0);toneBus.connect(master);
+    rainGain=makeGain(.0);rainGain.connect(master);
+    makeDrone();makeRain();
+  }
+  function makeDrone(){
+    // D6/9: open fifths plus E and F-sharp keep it calm but less sombre.
+    const freqs=[73.42,110,146.83,164.81,185.00];
+    freqs.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=makeGain([.29,.15,.10,.055,.035][i]);
+      o.type=i<3?'sine':'triangle';o.frequency.value=f;
+      connectPinkMod(o.detune,1.8+i*.35,.003,.075,6);
+      const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1350;lp.Q.value=.12;
+      const breathe=makeGain(1);connectPinkMod(breathe.gain,.045,.003,.055,6);
+      o.connect(g).connect(lp).connect(breathe).connect(droneGain);o.start();
+    });
+  }
+  function makeRain(){
+    const sr=ctx.sampleRate,len=sr*8,bed=ctx.createBuffer(2,len,sr),drops=ctx.createBuffer(2,len,sr);
+    for(let ch=0;ch<2;ch++){
+      const d=bed.getChannelData(ch);let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      for(let i=0;i<len;i++){
+        const w=Math.random()*2-1;
+        b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;
+        b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;
+        const pink=b0+b1+b2+b3+b4+b5+b6+w*.5362;b6=w*.115926;
+        const air=.72+.10*Math.sin(2*Math.PI*i/(sr*(5.7+ch*.8))+ch*1.9);
+        d[i]=(pink*.042+w*.035)*air;
+      }
+      const q=drops.getChannelData(ch);let pos=Math.floor(Math.random()*900);
+      while(pos<len){
+        const dur=Math.floor(sr*(.008+Math.random()*.022)),f=1500+Math.random()*3300,a=.025+Math.random()*.055;
+        for(let j=0;j<dur&&pos+j<len;j++){const env=Math.exp(-6*j/dur);q[pos+j]+=Math.sin(2*Math.PI*f*j/sr)*env*a+(Math.random()*2-1)*env*a*.28;}
+        pos+=Math.floor(sr*(.055+Math.random()*.24));
+      }
+    }
+    rainSource=ctx.createBufferSource();rainSource.buffer=bed;rainSource.loop=true;
+    const dropSource=ctx.createBufferSource();dropSource.buffer=drops;dropSource.loop=true;
+    const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=150;
+    const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=6200;
+    const distant=ctx.createBiquadFilter();distant.type='lowpass';distant.frequency.value=950;
+    const nearGain=makeGain(.78),farGain=makeGain(.34),dropGain=makeGain(.42),drift=makeGain(1);
+    connectPinkMod(drift.gain,.065,.005,.13,6);
+    rainSource.connect(hp).connect(lp).connect(nearGain).connect(drift);
+    rainSource.connect(distant).connect(farGain).connect(drift);
+    dropSource.connect(dropGain).connect(drift);drift.connect(rainGain);
+    rainSource.start();dropSource.start();
+  }
+  function scheduleSoftTone(freq,name,at,attack=5,dur=18){
+    const o=ctx.createOscillator();o.type='sine';o.frequency.value=freq;
+    const g=makeGain(0);const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1200;
+    connectPinkMod(o.detune,2.2,.008,.09,5,at+dur+.2);o.connect(g).connect(lp).connect(toneBus);
+    g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(.075,at+attack);g.gain.linearRampToValueAtTime(.025,at+dur-4);g.gain.linearRampToValueAtTime(0,at+dur);
+    o.start(at);o.stop(at+dur+.1);currentTone=name;setTimeout(()=>{if(currentTone===name)currentTone='—';},dur*1000);
+  }
+  function scheduleBowl(freq,name,at,attack=7,dur=28){
+    const ratios=[1,2.01,2.96,4.08],amps=[.10,.05,.035,.018];
+    ratios.forEach((r,i)=>{const o=ctx.createOscillator(),g=makeGain(0);o.type='sine';o.frequency.value=freq*r;connectPinkMod(o.detune,1.3+i*.25,.006,.065,5,at+dur+.2);const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1850;lp.Q.value=.16;o.connect(g).connect(lp).connect(bowlBus);g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(amps[i],at+attack);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.start(at);o.stop(at+dur+.1);});
+    currentBowl=name;setTimeout(()=>{if(currentBowl===name)currentBowl='—';},dur*1000);
+  }
+  function scheduleNextEvents(t){
+    if(!running)return;
+    const p=infoParams(t), now=ctx.currentTime;
+    if(t>=SESSION_SEC-120) return;
+    if(t>=nextBowl && !voiceBusy && (t-lastVoiceAt)>5){
+      const idx=Math.random()<.62?0:Math.floor(Math.random()*scale.length); const name=noteNames[idx];
+      const atk=lerp(3,12,clamp(t/1200,0,1)); scheduleBowl(scale[idx]/2,name,now+.08,atk,lerp(24,36,t/SESSION_SEC));
+      scheduled.bowl.push(t); nextBowl=t+lerp(24,70,t/SESSION_SEC)*(1+.16*pinkTiming(t,1.2))*(0.94+Math.random()*.12)/p.density;
+    }
+    if(t>=nextTone && !voiceBusy && (t-lastVoiceAt)>4){
+      const idx=Math.floor(Math.random()*scale.length); const name=noteNames[idx];
+      const atk=lerp(3,10,t/SESSION_SEC); scheduleSoftTone(scale[idx],name,now+.08,atk,lerp(15,27,t/SESSION_SEC));
+      scheduled.tone.push(t); nextTone=t+lerp(18,58,t/SESSION_SEC)*(1+.18*pinkTiming(t,2.7))*(0.92+Math.random()*.16)/p.density;
+    }
+  }
+  function updateMixNow(){ if(!ctx)return; const t=running?performance.now()/1000-startAt:0,p=infoParams(t); const voiceDuck=voiceBusy?.58:1;
+    droneGain.gain.setTargetAtTime(getMix('drone')*.36*p.fade*voiceDuck,ctx.currentTime,.8);
+    bowlBus.gain.setTargetAtTime(getMix('bowl')*.85*p.fade*(voiceBusy?.18:1),ctx.currentTime,.6);
+    rainGain.gain.setTargetAtTime(getMix('rain')*.24*p.fade*voiceDuck,ctx.currentTime,.8);
+    toneBus.gain.setTargetAtTime(getMix('tone')*.9*p.fade*(voiceBusy?.18:1),ctx.currentTime,.6);
+  }
+
+  const arrival=[
+    '横になったままで大丈夫です。眠ろうと努力しなくてもかまいません。',
+    '今は、ただ音と身体の感覚に少しだけ注意を預けます。'
+  ];
+  const breath=[
+    '呼吸を少しだけゆっくりしてみます。息は止めません。',
+    '楽な範囲で吸って、吐く息を少しだけ長くします。',
+    '苦しく感じたら、合図に合わせず、自然な呼吸に戻してください。',
+    '次の数呼吸も、楽な速さのままで大丈夫です。'
+  ];
+  const body=[
+    '背中がベッドに触れている感覚を、少しだけ感じます。',
+    '肩の重さを、そのまま感じます。変えなくて大丈夫です。',
+    '手の重さを感じます。',
+    '脚がベッドに預けられている感覚を感じます。',
+    '顔まわりは、力を抜こうとせず、そのままで大丈夫です。'
+  ];
+  const images=[['白い','石'],['小さな','木の箱'],['丸い','窓'],['薄い','雲'],['紙の','舟'],['木の','椅子'],['静かな','葉'],['白い','布'],['小さな','橋'],['ガラスの','コップ'],['遠い','丘'],['丸い','皿'],['細い','枝'],['灰色の','小石'],['木の','扉'],['淡い','霧'],['小さな','棚'],['乾いた','葉'],['低い','塀'],['白い','貝殻'],['静かな','池'],['紙の','袋'],['細い','道'],['丸い','鏡']];
+
+  function chooseVoice(){
+    if(!('speechSynthesis' in window))return;
+    const voices=speechSynthesis.getVoices().filter(v=>/^ja(?:-|_)/i.test(v.lang));
+    const score=v=>/premium|enhanced|kyoko|nanami/i.test(v.name)?3:/compact|default/i.test(v.name)?1:2;
+    preferredVoice=voices.sort((a,b)=>score(b)-score(a))[0]||null;
+  }
+  chooseVoice(); if('speechSynthesis' in window)speechSynthesis.onvoiceschanged=chooseVoice;
+  function speak(text, rate=.58){
+    if(!('speechSynthesis'in window)||!running)return;
+    speechSynthesis.cancel();const parts=Array.isArray(text)?text:[text];
+    voiceBusy=true;lastVoiceAt=performance.now()/1000-startAt;scheduled.voice.push(lastVoiceAt);updateMixNow();
+    const finish=()=>{voiceBusy=false;lastVoiceAt=performance.now()/1000-startAt;updateMixNow();};
+    const sayPart=i=>{if(!running)return finish();const u=new SpeechSynthesisUtterance(parts[i]);u.lang='ja-JP';u.rate=rate;u.pitch=.90;u.volume=clamp(getMix('voice')*.92,0,1);if(preferredVoice)u.voice=preferredVoice;
+      u.onerror=finish;u.onend=()=>{if(i+1<parts.length)setTimeout(()=>sayPart(i+1),1050);else finish();};speechSynthesis.speak(u);};sayPart(0);
+  }
+  function buildPhraseQueue(){phraseQueue=[]; const enabled=$$('[data-guide]').filter(e=>e.checked).map(e=>e.dataset.guide); const durations={arrival:120,breath:240,body:240,imagery:420};let c=30;
+    for(const id of enabled){const st=c,en=c+durations[id]; if(id==='arrival'){arrival.forEach((x,i)=>phraseQueue.push({t:st+12+i*34,text:x}));}
+      if(id==='breath'){breath.forEach((x,i)=>phraseQueue.push({t:st+12+i*52,text:x}));}
+      if(id==='body'){body.forEach((x,i)=>phraseQueue.push({t:st+12+i*42,text:x}));}
+      if(id==='imagery'){phraseQueue.push({t:st+8,text:'短い言葉を聞いたら、一瞬だけ形を思い浮かべます。はっきり見えなくても大丈夫です。次の言葉が来たら、前のイメージはそのまま手放します。'}); let tt=st+42,idx=0; while(tt<en-25){phraseQueue.push({t:tt,text:images[idx++%images.length],image:true}); const prog=(tt-st)/(en-st);tt+=lerp(8,22,prog)*(0.9+Math.random()*.2);} }
+      c=en;
+    }
+  }
+  function processPhrases(t){if(!voiceBusy&&phraseQueue.length&&t>=phraseQueue[0].t){const p=phraseQueue.shift();speak(p.text,p.image?.48:.58);}}
+
+  function start(){
+    if(running)return; initAudio().then(()=>{
+      running=true;endFade=false;startAt=performance.now()/1000;nextBowl=18;nextTone=11;scheduled={voice:[],bowl:[],tone:[]};buildPhraseQueue();
+      $('#startBtn').textContent='セッション中';$('#startBtn').classList.add('running');$('#sessionCard').classList.add('visible');
+      updateMixNow();loop();timer=setInterval(()=>{if(running)updateMixNow();},1000);
+    });
+  }
+  function stop(immediate=true){
+    if(!running)return;running=false;clearInterval(timer);cancelAnimationFrame(raf);speechSynthesis?.cancel();
+    if(ctx&&master){const now=ctx.currentTime;master.gain.cancelScheduledValues(now);master.gain.setValueAtTime(master.gain.value,now);master.gain.linearRampToValueAtTime(0,now+(immediate?.8:12));setTimeout(()=>ctx?.close(),(immediate?1000:12500));}
+    $('#startBtn').textContent='入眠をはじめる';$('#startBtn').classList.remove('running');$('#audioStatus').textContent='サウンド: 停止';$('#voiceStatus').textContent='音声: 停止';
+  }
+  function gentleEnd(){ if(!running)return; endFade=true; const now=ctx.currentTime; master.gain.cancelScheduledValues(now); master.gain.setValueAtTime(master.gain.value,now); master.gain.linearRampToValueAtTime(0,now+18); speechSynthesis?.cancel(); setTimeout(()=>stop(true),18500); }
+  $('#startBtn').onclick=start;$('#stopBtn').onclick=()=>stop(true);$('#fadeBtn').onclick=gentleEnd;
+
+  function fmt(s){s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+  function renderTimeline(t){for(const kind of ['voice','bowl','tone']){const tr=$(`[data-track="${kind}"]`);[...tr.querySelectorAll('.event')].forEach(e=>e.remove()); const future=scheduled[kind].filter(x=>x>=t&&x<=t+60); if(kind==='voice') phraseQueue.filter(p=>p.t>=t&&p.t<=t+60).forEach(p=>future.push(p.t)); if(kind==='bowl'&&isFinite(nextBowl)&&nextBowl<=t+60)future.push(nextBowl); if(kind==='tone'&&isFinite(nextTone)&&nextTone<=t+60)future.push(nextTone); [...new Set(future)].forEach(x=>{const e=document.createElement('div');e.className='event';e.style.left=((x-t)/60*100)+'%';tr.appendChild(e);});}}
+  function loop(){if(!running)return;const t=performance.now()/1000-startAt;if(t>=SESSION_SEC){stop(false);return;} const ph=phaseAt(t),p=infoParams(t);processPhrases(t);scheduleNextEvents(t);updateMixNow();
+    $('#phaseName').textContent=phaseJa[ph.id];$('#timeText').textContent=fmt(t);$('#progressBar').style.width=(t/SESSION_SEC*100)+'%';$('#voiceStatus').textContent='音声: '+(voiceBusy?'再生中':'待機');$('#audioStatus').textContent='サウンド: 再生中';
+    const layers=['Drone','Rain'];if(currentBowl!=='—')layers.push('Bowl');if(currentTone!=='—')layers.push('Soft Tone');
+    $('#dbgLayers').textContent=layers.join(' / ');$('#dbgCurrent').textContent=`Bowl ${currentBowl} | Tone ${currentTone}`;
+    const nextKind=nextBowl<nextTone?['Bowl',nextBowl]:['Tone',nextTone];$('#dbgNext').textContent=isFinite(nextKind[1])?`${nextKind[0]} in ${Math.max(0,nextKind[1]-t).toFixed(1)}s`:'—';
+    $('#dbgParams').textContent=`novelty ${p.novelty.toFixed(2)} | density ${p.density.toFixed(2)} | bright ${p.brightness.toFixed(2)} | fade ${(20*Math.log10(Math.max(p.fade,1e-6))).toFixed(1)} dB`;
+    $('#dbgVoice').textContent=`voice ${voiceBusy?'ON':'OFF'} | transient suppression ${voiceBusy||t-lastVoiceAt<5?'ON':'OFF'}`;renderTimeline(t);raf=requestAnimationFrame(loop);}
+})();
+</script>
+</body>
+</html>
