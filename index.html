@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- 入眠サウンド v0.7.0 -->
+<!-- 入眠サウンド v0.8.0 -->
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
@@ -12,13 +12,14 @@
 body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 .wrap{max-width:780px;margin:0 auto;padding:24px 18px 56px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.title{font-size:28px;font-weight:700;margin:5px 0 8px}.sub{font-size:14px;line-height:1.65;color:var(--muted);max-width:620px}.card{background:linear-gradient(180deg,var(--panel),#0a0d0f);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:16px}.section-title{font-size:15px;font-weight:700;margin-bottom:12px}.start{width:100%;border:0;border-radius:18px;padding:18px 20px;font-size:18px;font-weight:700;background:var(--accent);color:#0c1113;margin-top:20px}.start.running{background:#3b4449;color:white}.small-btn{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.guide{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:12px 0}.guide:last-child{border-bottom:0}.guide-name{font-size:15px}.guide-desc{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}.switch{position:relative;width:48px;height:28px;flex:none}.switch input{display:none}.slider{position:absolute;inset:0;border-radius:20px;background:#30363b;transition:.2s}.slider:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;border-radius:50%;background:#aeb8bd;transition:.2s}.switch input:checked+.slider{background:#d8e1e4}.switch input:checked+.slider:before{transform:translateX(20px);background:#111}.mrow{display:grid;grid-template-columns:110px 1fr 44px;align-items:center;gap:10px;margin:13px 0}.mrow label{font-size:13px}.mrow input[type=range]{width:100%;accent-color:#cfd9dd}.pct{font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);font-size:12px}.session{display:none}.session.visible{display:block}.phase{font-size:13px;color:var(--muted)}.phase-name{font-size:22px;font-weight:700;margin-top:4px}.time{font-size:46px;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin:16px 0 4px}.progress{height:6px;background:#191f23;border-radius:8px;overflow:hidden}.progress>div{height:100%;width:0%;background:#cdd8dc}.controls{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.debug{display:none}.debug.visible{display:block}.debug-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dbg{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px}.dbg-k{font-size:11px;color:var(--muted);margin-bottom:4px}.dbg-v{font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-word}.timeline{margin-top:12px;display:grid;grid-template-columns:58px 1fr;gap:7px 9px;align-items:center}.tl-label{font-size:11px;color:var(--muted)}.tl-track{position:relative;height:17px;background:#12171a;border-radius:8px;overflow:hidden}.event{position:absolute;top:4px;width:8px;height:8px;border-radius:50%;background:#dce6e9;transform:translateX(-4px)}.nowline{position:absolute;left:0;top:0;bottom:0;width:1px;background:#7d8a90}.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px}.statusline{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:12px;margin-top:10px}.dim{opacity:.48}.hidden{display:none!important}
 .seek{width:100%;margin:14px 0 0;accent-color:#cfd9dd}.seek:disabled{opacity:.35}.seek-times{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.audio-details{display:none;margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:#cbd3d6;font-size:13px;line-height:1.75}.audio-details.visible{display:block}.audio-details h3{font-size:14px;color:var(--text);margin:15px 0 4px}.audio-details h3:first-child{margin-top:0}.audio-details p{margin:0}.audio-details ul{margin:5px 0 0;padding-left:20px}.audio-details code{color:#e7edef}
 @media(max-width:580px){.grid,.debug-grid{grid-template-columns:1fr}.title{font-size:24px}.mrow{grid-template-columns:92px 1fr 38px}.time{font-size:40px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <div><div class="eyebrow">Sleep onset prototype · <span id="versionLabel">v0.7.0</span></div><div class="title">入眠サウンド</div><div class="sub">一日の終わりに、心と身体を静かな休息へ導く試作版です。音・声・情報量が少しずつ穏やかになり、30分で静けさへ移ります。</div></div>
+    <div><div class="eyebrow">Sleep onset prototype · <span id="versionLabel">v0.8.0</span></div><div class="title">入眠サウンド</div><div class="sub">一日の終わりに、心と身体を静かな休息へ導く試作版です。音・声・情報量が少しずつ穏やかになり、30分で静けさへ移ります。</div></div>
     <button class="small-btn" id="debugToggle">デバッグ</button>
   </div>
 
@@ -45,11 +46,21 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     <div class="section-title">サウンド</div>
     <div class="mrow"><label>ドローン</label><input type="range" min="0" max="100" value="43" data-mix="drone"><span class="pct" data-pct="drone">43</span></div>
     <div class="mrow"><label>ボウル</label><input type="range" min="0" max="100" value="48" data-mix="bowl"><span class="pct" data-pct="bowl">48</span></div>
-    <div class="mrow"><label>雨</label><input type="range" min="0" max="100" value="15" data-mix="rain"><span class="pct" data-pct="rain">15</span></div>
+    <div class="mrow"><label>雨</label><input type="range" min="0" max="40" value="15" data-mix="rain"><span class="pct" data-pct="rain">15</span></div>
     <div class="mrow"><label>ソフトトーン</label><input type="range" min="0" max="100" value="34" data-mix="tone"><span class="pct" data-pct="tone">34</span></div>
-    <div class="mrow"><label>音声</label><input type="range" min="0" max="100" value="20" data-mix="voice"><span class="pct" data-pct="voice">20</span></div>
+    <div class="mrow"><label>音声</label><input type="range" min="0" max="45" value="20" data-mix="voice"><span class="pct" data-pct="voice">20</span></div>
     <button class="small-btn" id="resetMix">おすすめに戻す</button>
+    <button class="small-btn" id="detailsToggle" aria-expanded="false" aria-controls="audioDetails">音の詳細解説</button>
     <div class="hint">各音量は端末内に保存されます。セッション後半では、ここで設定した音量からさらに自動的に静かになります。</div>
+    <div class="audio-details" id="audioDetails">
+      <h3>30分全体の設計</h3><p>すべての音は開始時の密度を基準に、時間とともに変化量、明るさ、イベント数、音量を減らします。マスター音量は、開始時を基準に5分で約−1 dB、10分で−3 dB、15分で−6 dB、20分で−10 dB、25分で−18 dB、28分で−28 dBへ移り、30分で静けさに到達します。</p>
+      <h3>ドローン</h3><p>開始直後から連続します。Dを中心とした6/9の開放的な和音を、主に146〜330 Hzへ配置しています。92 Hz以下を整理し、ごく小さな1/f型の音量・音程変化を加えています。明確なリズムやコード進行はありません。</p>
+      <h3>雨</h3><p>開始直後から連続します。左右で異なる雨の面、遠い雨、細かな雨粒を重ねています。数秒から数分単位の緩やかな強弱だけを加え、急な天候変化は作りません。</p>
+      <h3>ソフトトーン</h3><p>最初は開始約4秒後です。序盤はおよそ18秒以上の間隔で現れ、後半ほど間隔が広がります。1音は約15〜27秒続き、立ち上がりは約3〜10秒です。Dメジャー・ペンタトニックの音だけを使います。</p>
+      <h3>ボウル</h3><p>最初は開始約9秒後です。序盤はおよそ24秒以上の間隔で現れ、後半ほど疎になります。打撃音は使わず、約3〜12秒かけて共鳴が現れます。倍音は完全五度とオクターブ中心です。</p>
+      <h3>音声と入眠ガイド</h3><p>全ガイドがONの場合、導入は0〜1分30秒、呼吸は1分30秒〜4分30秒、身体は4分30秒〜7分30秒、イメージ誘導は7分30秒〜14分30秒です。その後は音だけになります。OFFの項目は空白にせず、残りの項目を前へ詰めます。アプリ内部では音声中も他の音量とイベント頻度を変えません。</p>
+      <h3>終盤</h3><p>最後の2分間は新しいボウルとソフトトーンを発生させず、残っている連続音だけがフェードします。終了を告げる音や音声は入れません。</p>
+    </div>
   </div>
 
   <div class="debug card" id="debugPanel">
@@ -73,7 +84,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
 <script>
 (() => {
   'use strict';
-  const APP_VERSION = '0.7.0';
+  const APP_VERSION = '0.8.0';
   const SESSION_SEC = 30*60;
   const defaults = {drone:43,bowl:48,rain:15,tone:34,voice:20};
   const scale = [164.81,185.00,220.00,246.94,293.66]; // E3 F#3 A3 B3 D4
@@ -90,7 +101,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   let phraseQueue=[], preferredVoice=null,imageOrder=[],activeEventSources=[];
 
   function load(){
-    const currentMixVersion=6;
+    const currentMixVersion=7;
     let mix=JSON.parse(localStorage.getItem('sleepMix')||'null')||defaults;
     if(+localStorage.getItem('sleepMixVersion')!==currentMixVersion){mix=defaults;localStorage.setItem('sleepMixVersion',currentMixVersion);localStorage.setItem('sleepMix',JSON.stringify(defaults));}
     $$('[data-mix]').forEach(el=>{const k=el.dataset.mix;el.value=mix[k] ?? defaults[k];$(`[data-pct="${k}"]`).textContent=el.value;});
@@ -104,6 +115,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   $$('[data-guide]').forEach(el=>el.addEventListener('change',saveGuides));
   $('#resetMix').onclick=()=>{$$('[data-mix]').forEach(e=>{e.value=defaults[e.dataset.mix];$(`[data-pct="${e.dataset.mix}"]`).textContent=e.value;});saveMix();updateMixNow();};
   $('#debugToggle').onclick=()=>$('#debugPanel').classList.toggle('visible');
+  $('#detailsToggle').onclick=()=>{const panel=$('#audioDetails'),open=!panel.classList.contains('visible');panel.classList.toggle('visible',open);$('#detailsToggle').setAttribute('aria-expanded',String(open));$('#detailsToggle').textContent=open?'音の詳細解説を閉じる':'音の詳細解説';};
 
   function makeGain(v=1){const g=ctx.createGain();g.gain.value=v;return g;}
   function getMix(k){return +$(`[data-mix="${k}"]`).value/100;}
@@ -259,10 +271,29 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     '脚全体が、ゆったりと支えられています。',
     '額、まぶた、頬が、なめらかにゆるんでいきます。'
   ];
-  // 25 calm modifiers × 20 familiar objects = 500 unique, low-arousal prompts.
-  const imageModifiers=['白い','淡い色の','小さな','丸みのある','なめらかな','手のひらほどの','明るい色の','きれいな','ひとつの','軽い','素朴な','つやのある','やさしい色の','水色の','ベージュ色の','生成り色の','薄い色の','静かに置かれた','そっと置かれた','すっきりした','小ぶりな','やわらかな形の','淡く光る','端正な','シンプルな'];
-  const imageNouns=['石','木箱','コップ','皿','小石','貝殻','小瓶','ボタン','カード','タイル','封筒','糸巻き','木片','スプーン','鉛筆','積み木','コースター','ビー玉','木の輪','器'];
-  const images=imageModifiers.flatMap(mod=>imageNouns.map(noun=>[mod,noun]));
+  // 100 calm, spacious natural scenes for low-arousal imagery distraction.
+  const images=[
+    ['朝の光の','広い草原'],['淡い緑の','なだらかな丘'],['風がゆっくり渡る','草の平原'],['やわらかな光の','花の野原'],['遠くまで続く','緑の牧草地'],
+    ['静かに広がる','高原の草地'],['小さな花が点在する','明るい草原'],['雲の影が流れる','広い野原'],['穏やかな風の','丘の連なり'],['淡い陽射しの','草原の道'],
+    ['朝もやに包まれた','遠い山並み'],['青くかすむ','穏やかな山々'],['ゆるやかに連なる','緑の山並み'],['白い雲をいただく','広い山景色'],['夕方の光の','なだらかな山'],
+    ['澄んだ空の下の','静かな峰々'],['遠くに見える','丸い山並み'],['淡い光に包まれた','高原の山'],['緑が広がる','大きな山麓'],['雲の間から見える','穏やかな山頂'],
+    ['空を映した','静かな湖'],['朝の光が広がる','大きな湖面'],['波紋がゆっくり消える','澄んだ湖'],['遠い山を映す','青い湖'],['薄い霧が浮かぶ','穏やかな湖畔'],
+    ['水面が明るく光る','広い湖'],['雲を映している','静かな水面'],['緑の岸に囲まれた','丸い湖'],['淡い空色の','なめらかな湖面'],['そよ風が渡る','高原の湖'],
+    ['水平線まで続く','穏やかな海'],['朝の光を映す','広い海面'],['小さな波が寄せる','明るい浜辺'],['淡い青色の','静かな入り江'],['白い砂が続く','ゆるやかな海岸'],
+    ['遠くに島が見える','穏やかな海'],['陽射しがきらめく','なめらかな水面'],['雲の下に広がる','青い水平線'],['波が静かにほどける','広い砂浜'],['やわらかな風の','明るい海辺'],
+    ['木漏れ日が広がる','静かな森'],['明るい緑に包まれた','広い林'],['まっすぐな木が並ぶ','穏やかな木立'],['朝の光が差し込む','やさしい森'],['葉の間から空が見える','静かな林'],
+    ['緑の影が揺れる','なだらかな森の道'],['やわらかな苔が広がる','明るい林床'],['風が葉を揺らす','広い木立'],['淡い光に満ちた','静かな森辺'],['遠くまで見渡せる','穏やかな林'],
+    ['澄んだ水が流れる','ゆるやかな川'],['光を映しながら進む','広い流れ'],['丸い石の間を通る','静かな小川'],['草原をゆっくり横切る','青い川'],['木々のそばを流れる','穏やかな水路'],
+    ['水音が遠くに続く','なだらかな渓流'],['白い水が静かに落ちる','遠い滝'],['朝の光を運ぶ','ゆるやかな川面'],['広い谷を流れる','穏やかな川'],['空を映して曲がる','静かな流れ'],
+    ['薄い雲が浮かぶ','広い青空'],['淡い光が満ちる','朝の空'],['白い雲がゆっくり進む','穏やかな空'],['水色が遠くまで続く','澄んだ空'],['雲の間に光が広がる','明るい空'],
+    ['丸い雲が並ぶ','静かな空模様'],['淡い金色に染まる','夕方の空'],['高い雲が流れる','広々とした空'],['やわらかな色が重なる','遠い空'],['光の層が広がる','穏やかな雲景色'],
+    ['緑の斜面に囲まれた','広い谷'],['朝の光が届く','なだらかな谷間'],['遠い山へ続く','明るい高原'],['草の波が広がる','静かな台地'],['淡い霧がほどける','大きな盆地'],
+    ['雲の影が移る','広い高原'],['緑と空がつながる','穏やかな台地'],['小さな川が見える','遠い谷間'],['光がゆっくり満ちる','高原の景色'],['なだらかな斜面が続く','明るい谷'],
+    ['白い雪が光る','遠い雪原'],['青空の下に広がる','静かな雪景色'],['朝の光を受ける','なだらかな雪の丘'],['淡い青に包まれた','広い氷原'],['雲を映す','明るい雪原'],
+    ['風の跡が続く','なめらかな砂丘'],['やわらかな曲線の','広い砂の丘'],['淡い金色に光る','静かな砂原'],['空と砂がつながる','穏やかな砂丘'],['朝の影が伸びる','なだらかな砂景色'],
+    ['緑に囲まれた','静かな島'],['青い水に浮かぶ','遠い島影'],['草花が広がる','明るい湿原'],['水面が点在する','広い湿地'],['葦がゆっくり揺れる','穏やかな水辺'],
+    ['白い花が広がる','静かな花畑'],['ラベンダー色の','なだらかな花の丘'],['朝露が光る','広い草花の野原'],['小さな島が並ぶ','穏やかな湾'],['空と水が溶け合う','遠い水辺']
+  ];
   function shuffled(a){const x=a.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
 
   function chooseVoice(){
