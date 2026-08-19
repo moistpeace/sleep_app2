@@ -40,10 +40,10 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   <div class="card">
     <div class="section-title">サウンド</div>
     <div class="mrow"><label>ドローン</label><input type="range" min="0" max="100" value="43" data-mix="drone"><span class="pct" data-pct="drone">43</span></div>
-    <div class="mrow"><label>ボウル</label><input type="range" min="0" max="100" value="55" data-mix="bowl"><span class="pct" data-pct="bowl">55</span></div>
+    <div class="mrow"><label>ボウル</label><input type="range" min="0" max="100" value="48" data-mix="bowl"><span class="pct" data-pct="bowl">48</span></div>
     <div class="mrow"><label>雨</label><input type="range" min="0" max="100" value="15" data-mix="rain"><span class="pct" data-pct="rain">15</span></div>
-    <div class="mrow"><label>ソフトトーン</label><input type="range" min="0" max="100" value="30" data-mix="tone"><span class="pct" data-pct="tone">30</span></div>
-    <div class="mrow"><label>音声</label><input type="range" min="0" max="100" value="40" data-mix="voice"><span class="pct" data-pct="voice">40</span></div>
+    <div class="mrow"><label>ソフトトーン</label><input type="range" min="0" max="100" value="34" data-mix="tone"><span class="pct" data-pct="tone">34</span></div>
+    <div class="mrow"><label>音声</label><input type="range" min="0" max="100" value="26" data-mix="voice"><span class="pct" data-pct="voice">26</span></div>
     <button class="small-btn" id="resetMix">おすすめに戻す</button>
     <div class="hint">各音量は端末内に保存されます。セッション後半では、ここで設定した音量からさらに自動的に静かになります。</div>
   </div>
@@ -56,7 +56,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
       <div class="dbg"><div class="dbg-k">次の音</div><div class="dbg-v" id="dbgNext">—</div></div>
       <div class="dbg"><div class="dbg-k">音階・使用音</div><div class="dbg-v" id="dbgScale">D major pentatonic / D E F♯ A B</div></div>
       <div class="dbg"><div class="dbg-k">生成パラメータ</div><div class="dbg-v" id="dbgParams">—</div></div>
-      <div class="dbg"><div class="dbg-k">音声 / 抑制</div><div class="dbg-v" id="dbgVoice">—</div></div>
+      <div class="dbg"><div class="dbg-k">音声 / ミックス</div><div class="dbg-v" id="dbgVoice">—</div></div>
     </div>
     <div class="timeline" id="timeline">
       <div class="tl-label">Voice</div><div class="tl-track" data-track="voice"><div class="nowline"></div></div>
@@ -70,7 +70,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
 (() => {
   'use strict';
   const SESSION_SEC = 30*60;
-  const defaults = {drone:43,bowl:48,rain:15,tone:34,voice:40};
+  const defaults = {drone:43,bowl:48,rain:15,tone:34,voice:26};
   const scale = [164.81,185.00,220.00,246.94,293.66]; // E3 F#3 A3 B3 D4
   const noteNames = ['E3','F♯3','A3','B3','D4'];
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
@@ -85,7 +85,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   let phraseQueue=[], preferredVoice=null;
 
   function load(){
-    const currentMixVersion=4;
+    const currentMixVersion=5;
     let mix=JSON.parse(localStorage.getItem('sleepMix')||'null')||defaults;
     if(+localStorage.getItem('sleepMixVersion')!==currentMixVersion){mix=defaults;localStorage.setItem('sleepMixVersion',currentMixVersion);localStorage.setItem('sleepMix',JSON.stringify(defaults));}
     $$('[data-mix]').forEach(el=>{const k=el.dataset.mix;el.value=mix[k] ?? defaults[k];$(`[data-pct="${k}"]`).textContent=el.value;});
@@ -137,8 +137,8 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   }
   function phaseAt(t){
     const enabled=$$('[data-guide]').filter(e=>e.checked).map(e=>e.dataset.guide);
-    const durations={arrival:120,breath:240,body:240,imagery:420};
-    let cursor=30;
+    const durations={arrival:90,breath:180,body:180,imagery:420};
+    let cursor=0;
     for(const id of enabled){ const end=cursor+durations[id]; if(t>=cursor && t<end) return {id,start:cursor,end}; cursor=end; }
     return {id:'music',start:cursor,end:SESSION_SEC};
   }
@@ -155,15 +155,17 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     makeDrone();makeRain();
   }
   function makeDrone(){
-    // D6/9: open fifths plus E and F-sharp keep it calm but less sombre.
-    const freqs=[73.42,110,146.83,164.81,185.00,220.00,293.66];
+    // Clear D6/9 voicing: the sub-heavy D2 is removed and D3 becomes the anchor.
+    const freqs=[110,146.83,164.81,185.00,220.00,293.66,329.63];
+    const levels=[.045,.19,.105,.066,.052,.018,.012];
     freqs.forEach((f,i)=>{
-      const o=ctx.createOscillator(),g=makeGain([.26,.14,.09,.052,.035,.018,.009][i]);
-      o.type=i<5?'sine':'triangle';o.frequency.value=f;
-      connectPinkMod(o.detune,1.8+i*.35,.003,.075,6);
-      const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1350;lp.Q.value=.12;
-      const breathe=makeGain(1);connectPinkMod(breathe.gain,.045,.003,.055,6);
-      o.connect(g).connect(lp).connect(breathe).connect(droneGain);o.start();
+      const o=ctx.createOscillator(),g=makeGain(levels[i]);o.type='sine';o.frequency.value=f;
+      connectPinkMod(o.detune,.75+i*.12,.003,.055,5);
+      const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=92;hp.Q.value=.3;
+      const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1750;lp.Q.value=.08;
+      const breathe=makeGain(1);connectPinkMod(breathe.gain,.028,.003,.042,5);
+      const pan=ctx.createStereoPanner?ctx.createStereoPanner():makeGain(1);if(pan.pan)pan.pan.value=[-.18,.12,-.08,.17,-.14,.08,0][i];
+      o.connect(g).connect(hp).connect(lp).connect(breathe).connect(pan).connect(droneGain);o.start();
     });
   }
   function makeRain(){
@@ -214,22 +216,22 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     if(!running)return;
     const p=infoParams(t), now=ctx.currentTime;
     if(t>=SESSION_SEC-120) return;
-    if(t>=nextBowl && !voiceBusy && (t-lastVoiceAt)>5){
+    if(t>=nextBowl){
       const idx=Math.random()<.62?0:Math.floor(Math.random()*scale.length); const name=noteNames[idx];
       const atk=lerp(3,12,clamp(t/1200,0,1)); scheduleBowl(scale[idx]*.72,name,now+.08,atk,lerp(24,36,t/SESSION_SEC));
       scheduled.bowl.push(t); nextBowl=t+lerp(24,70,t/SESSION_SEC)*(1+.16*pinkTiming(t,1.2))*(0.94+Math.random()*.12)/p.density;
     }
-    if(t>=nextTone && !voiceBusy && (t-lastVoiceAt)>4){
+    if(t>=nextTone){
       const idx=Math.floor(Math.random()*scale.length); const name=noteNames[idx];
       const atk=lerp(3,10,t/SESSION_SEC); scheduleSoftTone(scale[idx],name,now+.08,atk,lerp(15,27,t/SESSION_SEC));
       scheduled.tone.push(t); nextTone=t+lerp(18,58,t/SESSION_SEC)*(1+.18*pinkTiming(t,2.7))*(0.92+Math.random()*.16)/p.density;
     }
   }
-  function updateMixNow(){ if(!ctx)return; const t=running?performance.now()/1000-startAt:0,p=infoParams(t); const bedDuck=voiceBusy?.88:1,eventDuck=voiceBusy?.72:1;
-    droneGain.gain.setTargetAtTime(getMix('drone')*.36*p.fade*bedDuck,ctx.currentTime,1.2);
-    bowlBus.gain.setTargetAtTime(getMix('bowl')*.85*p.fade*eventDuck,ctx.currentTime,1.0);
-    rainGain.gain.setTargetAtTime(getMix('rain')*.24*p.fade*bedDuck,ctx.currentTime,1.2);
-    toneBus.gain.setTargetAtTime(getMix('tone')*.9*p.fade*eventDuck,ctx.currentTime,1.0);
+  function updateMixNow(){ if(!ctx)return; const t=running?performance.now()/1000-startAt:0,p=infoParams(t);
+    droneGain.gain.setTargetAtTime(getMix('drone')*.36*p.fade,ctx.currentTime,1.2);
+    bowlBus.gain.setTargetAtTime(getMix('bowl')*.85*p.fade,ctx.currentTime,1.0);
+    rainGain.gain.setTargetAtTime(getMix('rain')*.24*p.fade,ctx.currentTime,1.2);
+    toneBus.gain.setTargetAtTime(getMix('tone')*.9*p.fade,ctx.currentTime,1.0);
   }
 
   const arrival=[
@@ -237,19 +239,22 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     'やわらかな音と、呼吸の流れを、そっと感じていきます。'
   ];
   const breath=[
+    'ここからは、呼吸の流れを、ゆっくり感じていきます。',
     'いつもの呼吸が、静かに続いています。',
     '吸う息がやさしく入り、吐く息とともに、身体がゆったり広がります。',
     'あなたにちょうどよい速さで、呼吸が穏やかに流れています。',
     '吐く息のたびに、身体がベッドへ、やわらかくあずけられていきます。'
   ];
   const body=[
+    'ここからは、身体を支えている感覚へ、そっと注意を向けます。',
     '背中に、ベッドのやわらかな支えを感じます。',
     '肩の重さが、ゆっくりとベッドへ広がります。',
     '手のひらと指先が、静かに休んでいます。',
     '脚全体が、ゆったりと支えられています。',
     '額、まぶた、頬が、なめらかにゆるんでいきます。'
   ];
-  const images=[['白い','石'],['小さな','木の箱'],['丸い','窓'],['淡い','雲'],['紙の','舟'],['木の','椅子'],['やわらかな','葉'],['白い','布'],['小さな','橋'],['透明な','コップ'],['なだらかな','丘'],['丸い','皿'],['細い','枝'],['なめらかな','小石'],['木の','扉'],['淡い','光'],['小さな','棚'],['一枚の','葉'],['低い','塀'],['白い','貝殻'],['静かな','池'],['紙の','袋'],['細い','道'],['丸い','鏡']];
+  const images=[['白い','石'],['小さな','木の箱'],['丸い','窓'],['淡い','雲'],['紙の','舟'],['木の','椅子'],['やわらかな','葉'],['白い','布'],['小さな','橋'],['透明な','コップ'],['なだらかな','丘'],['丸い','皿'],['細い','枝'],['なめらかな','小石'],['木の','扉'],['淡い','光'],['小さな','棚'],['一枚の','葉'],['低い','塀'],['白い','貝殻'],['静かな','池'],['紙の','袋'],['細い','道'],['丸い','鏡'],['小さな','器'],['明るい','砂'],['四角い','紙'],['木の','ボタン'],['薄い','カーテン'],['白い','花びら'],['小さな','籠'],['まっすぐな','糸'],['丸い','時計'],['淡い','水面'],['木の','スプーン'],['小さな','封筒'],['白い','タイル'],['細い','リボン'],['透明な','瓶'],['丸い','クッション']];
+  function shuffled(a){const x=a.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
 
   function chooseVoice(){
     if(!('speechSynthesis' in window))return;
@@ -258,11 +263,16 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     preferredVoice=voices.sort((a,b)=>score(b)-score(a))[0]||null;
   }
   chooseVoice(); if('speechSynthesis' in window)speechSynthesis.onvoiceschanged=chooseVoice;
+  function openingText(){
+    const names={arrival:'休息への導入',breath:'呼吸',body:'身体の感覚',imagery:'短いイメージ'};
+    const enabled=$$('[data-guide]').filter(e=>e.checked).map(e=>names[e.dataset.guide]);
+    return enabled.length?`これから、${enabled.join('、')}の順に、ゆっくり進みます。最後は、音だけの静かな時間になります。`:'これから、やわらかな音とともに、静かな時間を始めます。';
+  }
   function primeSpeech(){
     if(!('speechSynthesis' in window))return;
     chooseVoice();speechSynthesis.cancel();speechSynthesis.resume();
-    const u=new SpeechSynthesisUtterance('　');u.lang='ja-JP';u.rate=.6;u.pitch=.9;u.volume=.01;if(preferredVoice)u.voice=preferredVoice;
-    speechSynthesis.speak(u);
+    const u=new SpeechSynthesisUtterance(openingText());u.lang='ja-JP';u.rate=.56;u.pitch=.9;u.volume=clamp(getMix('voice')*.92,0,1);if(preferredVoice)u.voice=preferredVoice;
+    voiceBusy=true;u.onstart=()=>{voiceError=false;};u.onerror=()=>{voiceBusy=false;voiceError=true;};u.onend=()=>{voiceBusy=false;lastVoiceAt=running?performance.now()/1000-startAt:0;};speechSynthesis.speak(u);
   }
   function speak(text, rate=.58){
     if(!('speechSynthesis'in window)||!running)return;
@@ -273,11 +283,11 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
       let began=false;const watchdog=setTimeout(()=>{if(!began){voiceError=true;speechSynthesis.cancel();finish();}},1800);
       u.onstart=()=>{began=true;voiceError=false;clearTimeout(watchdog);};u.onerror=()=>{voiceError=true;clearTimeout(watchdog);finish();};u.onend=()=>{clearTimeout(watchdog);if(i+1<parts.length)setTimeout(()=>sayPart(i+1),1050);else finish();};speechSynthesis.speak(u);};sayPart(0);
   }
-  function buildPhraseQueue(){phraseQueue=[]; const enabled=$$('[data-guide]').filter(e=>e.checked).map(e=>e.dataset.guide); const durations={arrival:120,breath:240,body:240,imagery:420};let c=30;
-    for(const id of enabled){const st=c,en=c+durations[id]; if(id==='arrival'){arrival.forEach((x,i)=>phraseQueue.push({t:st+12+i*34,text:x}));}
-      if(id==='breath'){breath.forEach((x,i)=>phraseQueue.push({t:st+12+i*52,text:x}));}
-      if(id==='body'){body.forEach((x,i)=>phraseQueue.push({t:st+12+i*42,text:x}));}
-      if(id==='imagery'){phraseQueue.push({t:st+8,text:'これから、短い言葉が、ゆっくり届きます。浮かんだ形や色を、そっと眺めます。次の言葉とともに、景色が静かに入れ替わります。'}); let tt=st+42,idx=0; while(tt<en-25){phraseQueue.push({t:tt,text:images[idx++%images.length],image:true}); const prog=(tt-st)/(en-st);tt+=lerp(8,22,prog)*(0.9+Math.random()*.2);} }
+  function buildPhraseQueue(){phraseQueue=[]; const enabled=$$('[data-guide]').filter(e=>e.checked).map(e=>e.dataset.guide); const durations={arrival:90,breath:180,body:180,imagery:420};let c=0;
+    for(const id of enabled){const st=c,en=c+durations[id]; if(id==='arrival'){arrival.forEach((x,i)=>phraseQueue.push({t:st+10+i*22,text:x}));}
+      if(id==='breath'){breath.forEach((x,i)=>phraseQueue.push({t:st+8+i*28,text:x}));}
+      if(id==='body'){body.forEach((x,i)=>phraseQueue.push({t:st+8+i*27,text:x}));}
+      if(id==='imagery'){phraseQueue.push({t:st+7,text:'ここからは、短いイメージの時間です。言葉とともに浮かぶ形や色を、そっと眺めます。景色は、ゆっくり入れ替わっていきます。'}); const pool=shuffled(images);let tt=st+30,idx=0; while(tt<en-20&&idx<pool.length){phraseQueue.push({t:tt,text:pool[idx++],image:true}); const prog=(tt-st)/(en-st);tt+=lerp(9,20,prog)*(0.92+Math.random()*.16);} }
       c=en;
     }
   }
@@ -306,7 +316,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     $('#dbgLayers').textContent=layers.join(' / ');$('#dbgCurrent').textContent=`Bowl ${currentBowl} | Tone ${currentTone}`;
     const nextKind=nextBowl<nextTone?['Bowl',nextBowl]:['Tone',nextTone];$('#dbgNext').textContent=isFinite(nextKind[1])?`${nextKind[0]} in ${Math.max(0,nextKind[1]-t).toFixed(1)}s`:'—';
     $('#dbgParams').textContent=`novelty ${p.novelty.toFixed(2)} | density ${p.density.toFixed(2)} | bright ${p.brightness.toFixed(2)} | fade ${(20*Math.log10(Math.max(p.fade,1e-6))).toFixed(1)} dB`;
-    $('#dbgVoice').textContent=`voice ${voiceBusy?'ON':'OFF'} | transient suppression ${voiceBusy||t-lastVoiceAt<5?'ON':'OFF'}`;renderTimeline(t);raf=requestAnimationFrame(loop);}
+    $('#dbgVoice').textContent=`voice ${voiceBusy?'ON':'OFF'} | other layers unchanged`;renderTimeline(t);raf=requestAnimationFrame(loop);}
 })();
 </script>
 </body>
