@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- 入眠サウンド v0.7.0 -->
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
@@ -10,13 +11,14 @@
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI","Yu Gothic",sans-serif}
 body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 .wrap{max-width:780px;margin:0 auto;padding:24px 18px 56px}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.title{font-size:28px;font-weight:700;margin:5px 0 8px}.sub{font-size:14px;line-height:1.65;color:var(--muted);max-width:620px}.card{background:linear-gradient(180deg,var(--panel),#0a0d0f);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:16px}.section-title{font-size:15px;font-weight:700;margin-bottom:12px}.start{width:100%;border:0;border-radius:18px;padding:18px 20px;font-size:18px;font-weight:700;background:var(--accent);color:#0c1113;margin-top:20px}.start.running{background:#3b4449;color:white}.small-btn{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.guide{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:12px 0}.guide:last-child{border-bottom:0}.guide-name{font-size:15px}.guide-desc{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}.switch{position:relative;width:48px;height:28px;flex:none}.switch input{display:none}.slider{position:absolute;inset:0;border-radius:20px;background:#30363b;transition:.2s}.slider:before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;border-radius:50%;background:#aeb8bd;transition:.2s}.switch input:checked+.slider{background:#d8e1e4}.switch input:checked+.slider:before{transform:translateX(20px);background:#111}.mrow{display:grid;grid-template-columns:110px 1fr 44px;align-items:center;gap:10px;margin:13px 0}.mrow label{font-size:13px}.mrow input[type=range]{width:100%;accent-color:#cfd9dd}.pct{font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);font-size:12px}.session{display:none}.session.visible{display:block}.phase{font-size:13px;color:var(--muted)}.phase-name{font-size:22px;font-weight:700;margin-top:4px}.time{font-size:46px;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin:16px 0 4px}.progress{height:6px;background:#191f23;border-radius:8px;overflow:hidden}.progress>div{height:100%;width:0%;background:#cdd8dc}.controls{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.debug{display:none}.debug.visible{display:block}.debug-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dbg{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px}.dbg-k{font-size:11px;color:var(--muted);margin-bottom:4px}.dbg-v{font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-word}.timeline{margin-top:12px;display:grid;grid-template-columns:58px 1fr;gap:7px 9px;align-items:center}.tl-label{font-size:11px;color:var(--muted)}.tl-track{position:relative;height:17px;background:#12171a;border-radius:8px;overflow:hidden}.event{position:absolute;top:4px;width:8px;height:8px;border-radius:50%;background:#dce6e9;transform:translateX(-4px)}.nowline{position:absolute;left:0;top:0;bottom:0;width:1px;background:#7d8a90}.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px}.statusline{display:flex;justify-content:space-between;gap:16px;color:var(--muted);font-size:12px;margin-top:10px}.dim{opacity:.48}.hidden{display:none!important}
+.seek{width:100%;margin:14px 0 0;accent-color:#cfd9dd}.seek:disabled{opacity:.35}.seek-times{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
 @media(max-width:580px){.grid,.debug-grid{grid-template-columns:1fr}.title{font-size:24px}.mrow{grid-template-columns:92px 1fr 38px}.time{font-size:40px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <div><div class="eyebrow">Sleep onset prototype</div><div class="title">入眠サウンド</div><div class="sub">一日の終わりに、心と身体を静かな休息へ導く試作版です。音・声・情報量が少しずつ穏やかになり、30分で静けさへ移ります。</div></div>
+    <div><div class="eyebrow">Sleep onset prototype · <span id="versionLabel">v0.7.0</span></div><div class="title">入眠サウンド</div><div class="sub">一日の終わりに、心と身体を静かな休息へ導く試作版です。音・声・情報量が少しずつ穏やかになり、30分で静けさへ移ります。</div></div>
     <button class="small-btn" id="debugToggle">デバッグ</button>
   </div>
 
@@ -25,6 +27,8 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   <div class="session card" id="sessionCard">
     <div class="phase">現在のフェーズ</div><div class="phase-name" id="phaseName">—</div>
     <div class="time" id="timeText">00:00</div><div class="progress"><div id="progressBar"></div></div>
+    <input class="seek" id="seekBar" type="range" min="0" max="1800" step="1" value="0" aria-label="再生位置" disabled>
+    <div class="seek-times"><span id="seekTime">00:00</span><span>30:00</span></div>
     <div class="statusline"><span id="voiceStatus">音声: 待機</span><span id="audioStatus">サウンド: 待機</span></div>
     <div class="controls"><button class="small-btn" id="stopBtn">停止</button><button class="small-btn" id="fadeBtn">今すぐ静かに終える</button></div>
   </div>
@@ -43,7 +47,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     <div class="mrow"><label>ボウル</label><input type="range" min="0" max="100" value="48" data-mix="bowl"><span class="pct" data-pct="bowl">48</span></div>
     <div class="mrow"><label>雨</label><input type="range" min="0" max="100" value="15" data-mix="rain"><span class="pct" data-pct="rain">15</span></div>
     <div class="mrow"><label>ソフトトーン</label><input type="range" min="0" max="100" value="34" data-mix="tone"><span class="pct" data-pct="tone">34</span></div>
-    <div class="mrow"><label>音声</label><input type="range" min="0" max="100" value="26" data-mix="voice"><span class="pct" data-pct="voice">26</span></div>
+    <div class="mrow"><label>音声</label><input type="range" min="0" max="100" value="20" data-mix="voice"><span class="pct" data-pct="voice">20</span></div>
     <button class="small-btn" id="resetMix">おすすめに戻す</button>
     <div class="hint">各音量は端末内に保存されます。セッション後半では、ここで設定した音量からさらに自動的に静かになります。</div>
   </div>
@@ -69,8 +73,9 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
 <script>
 (() => {
   'use strict';
+  const APP_VERSION = '0.7.0';
   const SESSION_SEC = 30*60;
-  const defaults = {drone:43,bowl:48,rain:15,tone:34,voice:26};
+  const defaults = {drone:43,bowl:48,rain:15,tone:34,voice:20};
   const scale = [164.81,185.00,220.00,246.94,293.66]; // E3 F#3 A3 B3 D4
   const noteNames = ['E3','F♯3','A3','B3','D4'];
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
@@ -78,14 +83,14 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   const lerp=(a,b,t)=>a+(b-a)*t;
   const smooth=t=>t*t*(3-2*t);
   let ctx=null, master=null, droneGain=null, rainGain=null, bowlBus=null, toneBus=null;
-  let rainSource=null, running=false, startAt=0, raf=0, timer=0, endFade=false;
+  let rainSource=null, running=false, startAt=0, raf=0, timer=0, endFade=false,seeking=false;
   let nextBowl=Infinity,nextTone=Infinity,lastVoiceAt=-999,voiceBusy=false,voiceError=false;
   let currentBowl='—',currentTone='—';
   let scheduled = {voice:[],bowl:[],tone:[]};
-  let phraseQueue=[], preferredVoice=null;
+  let phraseQueue=[], preferredVoice=null,imageOrder=[],activeEventSources=[];
 
   function load(){
-    const currentMixVersion=5;
+    const currentMixVersion=6;
     let mix=JSON.parse(localStorage.getItem('sleepMix')||'null')||defaults;
     if(+localStorage.getItem('sleepMixVersion')!==currentMixVersion){mix=defaults;localStorage.setItem('sleepMixVersion',currentMixVersion);localStorage.setItem('sleepMix',JSON.stringify(defaults));}
     $$('[data-mix]').forEach(el=>{const k=el.dataset.mix;el.value=mix[k] ?? defaults[k];$(`[data-pct="${k}"]`).textContent=el.value;});
@@ -94,7 +99,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   }
   function saveMix(){const o={};$$('[data-mix]').forEach(e=>o[e.dataset.mix]=+e.value);localStorage.setItem('sleepMix',JSON.stringify(o));}
   function saveGuides(){const o={};$$('[data-guide]').forEach(e=>o[e.dataset.guide]=e.checked);localStorage.setItem('sleepGuides',JSON.stringify(o));}
-  load();
+  load();$('#versionLabel').textContent='v'+APP_VERSION;
   $$('[data-mix]').forEach(el=>el.addEventListener('input',()=>{$(`[data-pct="${el.dataset.mix}"]`).textContent=el.value;saveMix();updateMixNow();}));
   $$('[data-guide]').forEach(el=>el.addEventListener('change',saveGuides));
   $('#resetMix').onclick=()=>{$$('[data-mix]').forEach(e=>{e.value=defaults[e.dataset.mix];$(`[data-pct="${e.dataset.mix}"]`).textContent=e.value;});saveMix();updateMixNow();};
@@ -201,6 +206,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   }
   function scheduleSoftTone(freq,name,at,attack=5,dur=18){
     const o=ctx.createOscillator();o.type='sine';o.frequency.value=freq;
+    activeEventSources.push(o);
     const g=makeGain(0);const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1200;
     connectPinkMod(o.detune,2.2,.008,.09,5,at+dur+.2);o.connect(g).connect(lp).connect(toneBus);
     g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(.075,at+attack);g.gain.linearRampToValueAtTime(.025,at+dur-4);g.gain.linearRampToValueAtTime(0,at+dur);
@@ -209,7 +215,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   function scheduleBowl(freq,name,at,attack=7,dur=28){
     // Consonant fifths and octaves replace the metallic inharmonic partials.
     const ratios=[1,1.5,2,3,4],amps=[.078,.030,.022,.010,.0045];
-    ratios.forEach((r,i)=>{const o=ctx.createOscillator(),g=makeGain(0);o.type='sine';o.frequency.value=freq*r;connectPinkMod(o.detune,.45+i*.10,.006,.055,4,at+dur+.2);const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1500;lp.Q.value=.08;o.connect(g).connect(lp).connect(bowlBus);g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(amps[i],at+attack);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.start(at);o.stop(at+dur+.1);});
+    ratios.forEach((r,i)=>{const o=ctx.createOscillator(),g=makeGain(0);activeEventSources.push(o);o.type='sine';o.frequency.value=freq*r;connectPinkMod(o.detune,.45+i*.10,.006,.055,4,at+dur+.2);const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1500;lp.Q.value=.08;o.connect(g).connect(lp).connect(bowlBus);g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(amps[i],at+attack);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.start(at);o.stop(at+dur+.1);});
     currentBowl=name;setTimeout(()=>{if(currentBowl===name)currentBowl='—';},dur*1000);
   }
   function scheduleNextEvents(t){
@@ -253,7 +259,10 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     '脚全体が、ゆったりと支えられています。',
     '額、まぶた、頬が、なめらかにゆるんでいきます。'
   ];
-  const images=[['白い','石'],['小さな','木の箱'],['丸い','窓'],['淡い','雲'],['紙の','舟'],['木の','椅子'],['やわらかな','葉'],['白い','布'],['小さな','橋'],['透明な','コップ'],['なだらかな','丘'],['丸い','皿'],['細い','枝'],['なめらかな','小石'],['木の','扉'],['淡い','光'],['小さな','棚'],['一枚の','葉'],['低い','塀'],['白い','貝殻'],['静かな','池'],['紙の','袋'],['細い','道'],['丸い','鏡'],['小さな','器'],['明るい','砂'],['四角い','紙'],['木の','ボタン'],['薄い','カーテン'],['白い','花びら'],['小さな','籠'],['まっすぐな','糸'],['丸い','時計'],['淡い','水面'],['木の','スプーン'],['小さな','封筒'],['白い','タイル'],['細い','リボン'],['透明な','瓶'],['丸い','クッション']];
+  // 25 calm modifiers × 20 familiar objects = 500 unique, low-arousal prompts.
+  const imageModifiers=['白い','淡い色の','小さな','丸みのある','なめらかな','手のひらほどの','明るい色の','きれいな','ひとつの','軽い','素朴な','つやのある','やさしい色の','水色の','ベージュ色の','生成り色の','薄い色の','静かに置かれた','そっと置かれた','すっきりした','小ぶりな','やわらかな形の','淡く光る','端正な','シンプルな'];
+  const imageNouns=['石','木箱','コップ','皿','小石','貝殻','小瓶','ボタン','カード','タイル','封筒','糸巻き','木片','スプーン','鉛筆','積み木','コースター','ビー玉','木の輪','器'];
+  const images=imageModifiers.flatMap(mod=>imageNouns.map(noun=>[mod,noun]));
   function shuffled(a){const x=a.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
 
   function chooseVoice(){
@@ -281,29 +290,45 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     const finish=()=>{voiceBusy=false;lastVoiceAt=performance.now()/1000-startAt;updateMixNow();};
     const sayPart=i=>{if(!running)return finish();const u=new SpeechSynthesisUtterance(parts[i]);u.lang='ja-JP';u.rate=rate;u.pitch=.90;u.volume=clamp(getMix('voice')*.92,0,1);if(preferredVoice)u.voice=preferredVoice;
       let began=false;const watchdog=setTimeout(()=>{if(!began){voiceError=true;speechSynthesis.cancel();finish();}},1800);
-      u.onstart=()=>{began=true;voiceError=false;clearTimeout(watchdog);};u.onerror=()=>{voiceError=true;clearTimeout(watchdog);finish();};u.onend=()=>{clearTimeout(watchdog);if(i+1<parts.length)setTimeout(()=>sayPart(i+1),1050);else finish();};speechSynthesis.speak(u);};sayPart(0);
+      u.onstart=()=>{began=true;voiceError=false;clearTimeout(watchdog);};u.onerror=()=>{if(!seeking)voiceError=true;clearTimeout(watchdog);finish();};u.onend=()=>{clearTimeout(watchdog);if(i+1<parts.length)setTimeout(()=>sayPart(i+1),1050);else finish();};speechSynthesis.speak(u);};sayPart(0);
   }
   function buildPhraseQueue(){phraseQueue=[]; const enabled=$$('[data-guide]').filter(e=>e.checked).map(e=>e.dataset.guide); const durations={arrival:90,breath:180,body:180,imagery:420};let c=0;
     for(const id of enabled){const st=c,en=c+durations[id]; if(id==='arrival'){arrival.forEach((x,i)=>phraseQueue.push({t:st+10+i*22,text:x}));}
       if(id==='breath'){breath.forEach((x,i)=>phraseQueue.push({t:st+8+i*28,text:x}));}
       if(id==='body'){body.forEach((x,i)=>phraseQueue.push({t:st+8+i*27,text:x}));}
-      if(id==='imagery'){phraseQueue.push({t:st+7,text:'ここからは、短いイメージの時間です。言葉とともに浮かぶ形や色を、そっと眺めます。景色は、ゆっくり入れ替わっていきます。'}); const pool=shuffled(images);let tt=st+30,idx=0; while(tt<en-20&&idx<pool.length){phraseQueue.push({t:tt,text:pool[idx++],image:true}); const prog=(tt-st)/(en-st);tt+=lerp(9,20,prog)*(0.92+Math.random()*.16);} }
+      if(id==='imagery'){phraseQueue.push({t:st+7,text:'ここからは、短いイメージの時間です。言葉とともに浮かぶ形や色を、そっと眺めます。景色は、ゆっくり入れ替わっていきます。'}); const pool=imageOrder.length?imageOrder:(imageOrder=shuffled(images));let tt=st+30,idx=0; while(tt<en-20&&idx<pool.length){phraseQueue.push({t:tt,text:pool[idx++],image:true}); const prog=(tt-st)/(en-st);tt+=lerp(9,20,prog)*(0.92+Math.random()*.16);} }
       c=en;
     }
   }
   function processPhrases(t){if(!voiceBusy&&phraseQueue.length&&t>=phraseQueue[0].t){const p=phraseQueue.shift();speak(p.text,p.image?.48:.58);}}
 
+  function clearEventSources(){
+    activeEventSources.forEach(o=>{try{o.stop();}catch(_){}});activeEventSources=[];currentBowl='—';currentTone='—';
+  }
+  function seekTo(value){
+    if(!running)return;const target=clamp(+value,0,SESSION_SEC-.1);
+    seeking=true;speechSynthesis.cancel();voiceBusy=false;voiceError=false;clearEventSources();
+    startAt=performance.now()/1000-target;scheduled={voice:[],bowl:[],tone:[]};nextTone=target+1.5;nextBowl=target+4;
+    buildPhraseQueue();phraseQueue=phraseQueue.filter(p=>p.t>target+1);
+    $('#timeText').textContent=fmt(target);$('#seekTime').textContent=fmt(target);$('#progressBar').style.width=(target/SESSION_SEC*100)+'%';updateMixNow();
+    setTimeout(()=>{seeking=false;},120);
+  }
+  $('#seekBar').addEventListener('input',e=>{seeking=true;$('#seekTime').textContent=fmt(+e.target.value);$('#timeText').textContent=fmt(+e.target.value);});
+  $('#seekBar').addEventListener('change',e=>seekTo(e.target.value));
+  $('#seekBar').addEventListener('pointercancel',()=>{seeking=false;});
+
   function start(){
     if(running)return;primeSpeech();initAudio().then(()=>{
-      running=true;endFade=false;startAt=performance.now()/1000;nextBowl=9;nextTone=4;scheduled={voice:[],bowl:[],tone:[]};buildPhraseQueue();
+      running=true;endFade=false;startAt=performance.now()/1000;nextBowl=9;nextTone=4;scheduled={voice:[],bowl:[],tone:[]};imageOrder=shuffled(images);buildPhraseQueue();
       $('#startBtn').textContent='セッション中';$('#startBtn').classList.add('running');$('#sessionCard').classList.add('visible');
+      $('#seekBar').disabled=false;
       updateMixNow();loop();timer=setInterval(()=>{if(running)updateMixNow();},1000);
     });
   }
   function stop(immediate=true){
-    if(!running)return;running=false;clearInterval(timer);cancelAnimationFrame(raf);speechSynthesis?.cancel();
+    if(!running)return;running=false;clearInterval(timer);cancelAnimationFrame(raf);speechSynthesis?.cancel();clearEventSources();
     if(ctx&&master){const now=ctx.currentTime;master.gain.cancelScheduledValues(now);master.gain.setValueAtTime(master.gain.value,now);master.gain.linearRampToValueAtTime(0,now+(immediate?.8:12));setTimeout(()=>ctx?.close(),(immediate?1000:12500));}
-    $('#startBtn').textContent='入眠をはじめる';$('#startBtn').classList.remove('running');$('#audioStatus').textContent='サウンド: 停止';$('#voiceStatus').textContent='音声: 停止';
+    $('#startBtn').textContent='入眠をはじめる';$('#startBtn').classList.remove('running');$('#audioStatus').textContent='サウンド: 停止';$('#voiceStatus').textContent='音声: 停止';$('#seekBar').disabled=true;
   }
   function gentleEnd(){ if(!running)return; endFade=true; const now=ctx.currentTime; master.gain.cancelScheduledValues(now); master.gain.setValueAtTime(master.gain.value,now); master.gain.linearRampToValueAtTime(0,now+18); speechSynthesis?.cancel(); setTimeout(()=>stop(true),18500); }
   $('#startBtn').onclick=start;$('#stopBtn').onclick=()=>stop(true);$('#fadeBtn').onclick=gentleEnd;
@@ -311,7 +336,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   function fmt(s){s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
   function renderTimeline(t){for(const kind of ['voice','bowl','tone']){const tr=$(`[data-track="${kind}"]`);[...tr.querySelectorAll('.event')].forEach(e=>e.remove()); const future=scheduled[kind].filter(x=>x>=t&&x<=t+60); if(kind==='voice') phraseQueue.filter(p=>p.t>=t&&p.t<=t+60).forEach(p=>future.push(p.t)); if(kind==='bowl'&&isFinite(nextBowl)&&nextBowl<=t+60)future.push(nextBowl); if(kind==='tone'&&isFinite(nextTone)&&nextTone<=t+60)future.push(nextTone); [...new Set(future)].forEach(x=>{const e=document.createElement('div');e.className='event';e.style.left=((x-t)/60*100)+'%';tr.appendChild(e);});}}
   function loop(){if(!running)return;const t=performance.now()/1000-startAt;if(t>=SESSION_SEC){stop(false);return;} const ph=phaseAt(t),p=infoParams(t);processPhrases(t);scheduleNextEvents(t);updateMixNow();
-    $('#phaseName').textContent=phaseJa[ph.id];$('#timeText').textContent=fmt(t);$('#progressBar').style.width=(t/SESSION_SEC*100)+'%';$('#voiceStatus').textContent=voiceError?'音声: Safariで開始できません':'音声: '+(voiceBusy?'再生中':'待機');$('#audioStatus').textContent='サウンド: 再生中';
+    $('#phaseName').textContent=phaseJa[ph.id];if(!seeking){$('#timeText').textContent=fmt(t);$('#progressBar').style.width=(t/SESSION_SEC*100)+'%';$('#seekBar').value=t;$('#seekTime').textContent=fmt(t);}$('#voiceStatus').textContent=voiceError?'音声: Safariで開始できません':'音声: '+(voiceBusy?'再生中':'待機');$('#audioStatus').textContent='サウンド: 再生中';
     const layers=['Drone','Rain'];if(currentBowl!=='—')layers.push('Bowl');if(currentTone!=='—')layers.push('Soft Tone');
     $('#dbgLayers').textContent=layers.join(' / ');$('#dbgCurrent').textContent=`Bowl ${currentBowl} | Tone ${currentTone}`;
     const nextKind=nextBowl<nextTone?['Bowl',nextBowl]:['Tone',nextTone];$('#dbgNext').textContent=isFinite(nextKind[1])?`${nextKind[0]} in ${Math.max(0,nextKind[1]-t).toFixed(1)}s`:'—';
