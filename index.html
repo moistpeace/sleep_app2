@@ -16,7 +16,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
 <body>
 <div class="wrap">
   <div class="top">
-    <div><div class="eyebrow">Sleep onset prototype</div><div class="title">入眠サウンド</div><div class="sub">考えごとで寝つきにくい夜向けの試作版です。強いアタックを避け、音・声・情報量を少しずつ減らして30分で無音になります。</div></div>
+    <div><div class="eyebrow">Sleep onset prototype</div><div class="title">入眠サウンド</div><div class="sub">一日の終わりに、心と身体を静かな休息へ導く試作版です。音・声・情報量が少しずつ穏やかになり、30分で静けさへ移ります。</div></div>
     <button class="small-btn" id="debugToggle">デバッグ</button>
   </div>
 
@@ -31,10 +31,10 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
 
   <div class="card">
     <div class="section-title">入眠ガイド</div>
-    <div class="guide"><div><div class="guide-name">導入</div><div class="guide-desc">眠ろうと努力しなくてよいことを短く案内します。</div></div><label class="switch"><input data-guide="arrival" type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="guide"><div><div class="guide-name">ゆっくり呼吸</div><div class="guide-desc">息止めなし。苦しくない範囲で少しゆっくりした呼吸へ誘導します。</div></div><label class="switch"><input data-guide="breath" type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="guide"><div><div class="guide-name">身体への注意</div><div class="guide-desc">身体の重さやベッドとの接触へ注意を移します。</div></div><label class="switch"><input data-guide="body" type="checkbox" checked><span class="slider"></span></label></div>
-    <div class="guide"><div><div class="guide-name">イメージ誘導</div><div class="guide-desc">短い言葉から簡単なイメージを浮かべ、考えごとから自然に注意を移します。</div></div><label class="switch"><input data-guide="imagery" type="checkbox" checked><span class="slider"></span></label></div>
+    <div class="guide"><div><div class="guide-name">導入</div><div class="guide-desc">心と身体を、静かな休息へやさしく案内します。</div></div><label class="switch"><input data-guide="arrival" type="checkbox" checked><span class="slider"></span></label></div>
+    <div class="guide"><div><div class="guide-name">ゆっくり呼吸</div><div class="guide-desc">心地よい速さで続く呼吸を、穏やかに感じます。</div></div><label class="switch"><input data-guide="breath" type="checkbox" checked><span class="slider"></span></label></div>
+    <div class="guide"><div><div class="guide-name">身体への注意</div><div class="guide-desc">ベッドに支えられている身体の感覚へ、そっと注意を向けます。</div></div><label class="switch"><input data-guide="body" type="checkbox" checked><span class="slider"></span></label></div>
+    <div class="guide"><div><div class="guide-name">イメージ誘導</div><div class="guide-desc">短い言葉から浮かぶシンプルなイメージを、ゆったり眺めます。</div></div><label class="switch"><input data-guide="imagery" type="checkbox" checked><span class="slider"></span></label></div>
   </div>
 
   <div class="card">
@@ -43,7 +43,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     <div class="mrow"><label>ボウル</label><input type="range" min="0" max="100" value="55" data-mix="bowl"><span class="pct" data-pct="bowl">55</span></div>
     <div class="mrow"><label>雨</label><input type="range" min="0" max="100" value="15" data-mix="rain"><span class="pct" data-pct="rain">15</span></div>
     <div class="mrow"><label>ソフトトーン</label><input type="range" min="0" max="100" value="30" data-mix="tone"><span class="pct" data-pct="tone">30</span></div>
-    <div class="mrow"><label>音声</label><input type="range" min="0" max="100" value="58" data-mix="voice"><span class="pct" data-pct="voice">58</span></div>
+    <div class="mrow"><label>音声</label><input type="range" min="0" max="100" value="40" data-mix="voice"><span class="pct" data-pct="voice">40</span></div>
     <button class="small-btn" id="resetMix">おすすめに戻す</button>
     <div class="hint">各音量は端末内に保存されます。セッション後半では、ここで設定した音量からさらに自動的に静かになります。</div>
   </div>
@@ -70,7 +70,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
 (() => {
   'use strict';
   const SESSION_SEC = 30*60;
-  const defaults = {drone:43,bowl:48,rain:15,tone:34,voice:58};
+  const defaults = {drone:43,bowl:48,rain:15,tone:34,voice:40};
   const scale = [164.81,185.00,220.00,246.94,293.66]; // E3 F#3 A3 B3 D4
   const noteNames = ['E3','F♯3','A3','B3','D4'];
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
@@ -85,7 +85,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
   let phraseQueue=[], preferredVoice=null;
 
   function load(){
-    const currentMixVersion=3;
+    const currentMixVersion=4;
     let mix=JSON.parse(localStorage.getItem('sleepMix')||'null')||defaults;
     if(+localStorage.getItem('sleepMixVersion')!==currentMixVersion){mix=defaults;localStorage.setItem('sleepMixVersion',currentMixVersion);localStorage.setItem('sleepMix',JSON.stringify(defaults));}
     $$('[data-mix]').forEach(el=>{const k=el.dataset.mix;el.value=mix[k] ?? defaults[k];$(`[data-pct="${k}"]`).textContent=el.value;});
@@ -205,8 +205,9 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     o.start(at);o.stop(at+dur+.1);currentTone=name;setTimeout(()=>{if(currentTone===name)currentTone='—';},dur*1000);
   }
   function scheduleBowl(freq,name,at,attack=7,dur=28){
-    const ratios=[1,2.01,2.96,4.08],amps=[.10,.05,.035,.018];
-    ratios.forEach((r,i)=>{const o=ctx.createOscillator(),g=makeGain(0);o.type='sine';o.frequency.value=freq*r;connectPinkMod(o.detune,1.3+i*.25,.006,.065,5,at+dur+.2);const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1850;lp.Q.value=.16;o.connect(g).connect(lp).connect(bowlBus);g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(amps[i],at+attack);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.start(at);o.stop(at+dur+.1);});
+    // Consonant fifths and octaves replace the metallic inharmonic partials.
+    const ratios=[1,1.5,2,3,4],amps=[.078,.030,.022,.010,.0045];
+    ratios.forEach((r,i)=>{const o=ctx.createOscillator(),g=makeGain(0);o.type='sine';o.frequency.value=freq*r;connectPinkMod(o.detune,.45+i*.10,.006,.055,4,at+dur+.2);const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1500;lp.Q.value=.08;o.connect(g).connect(lp).connect(bowlBus);g.gain.setValueAtTime(0,at);g.gain.linearRampToValueAtTime(amps[i],at+attack);g.gain.exponentialRampToValueAtTime(.0001,at+dur);o.start(at);o.stop(at+dur+.1);});
     currentBowl=name;setTimeout(()=>{if(currentBowl===name)currentBowl='—';},dur*1000);
   }
   function scheduleNextEvents(t){
@@ -224,31 +225,31 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
       scheduled.tone.push(t); nextTone=t+lerp(18,58,t/SESSION_SEC)*(1+.18*pinkTiming(t,2.7))*(0.92+Math.random()*.16)/p.density;
     }
   }
-  function updateMixNow(){ if(!ctx)return; const t=running?performance.now()/1000-startAt:0,p=infoParams(t); const voiceDuck=voiceBusy?.58:1;
-    droneGain.gain.setTargetAtTime(getMix('drone')*.36*p.fade*voiceDuck,ctx.currentTime,.8);
-    bowlBus.gain.setTargetAtTime(getMix('bowl')*.85*p.fade*(voiceBusy?.18:1),ctx.currentTime,.6);
-    rainGain.gain.setTargetAtTime(getMix('rain')*.24*p.fade*voiceDuck,ctx.currentTime,.8);
-    toneBus.gain.setTargetAtTime(getMix('tone')*.9*p.fade*(voiceBusy?.18:1),ctx.currentTime,.6);
+  function updateMixNow(){ if(!ctx)return; const t=running?performance.now()/1000-startAt:0,p=infoParams(t); const bedDuck=voiceBusy?.88:1,eventDuck=voiceBusy?.72:1;
+    droneGain.gain.setTargetAtTime(getMix('drone')*.36*p.fade*bedDuck,ctx.currentTime,1.2);
+    bowlBus.gain.setTargetAtTime(getMix('bowl')*.85*p.fade*eventDuck,ctx.currentTime,1.0);
+    rainGain.gain.setTargetAtTime(getMix('rain')*.24*p.fade*bedDuck,ctx.currentTime,1.2);
+    toneBus.gain.setTargetAtTime(getMix('tone')*.9*p.fade*eventDuck,ctx.currentTime,1.0);
   }
 
   const arrival=[
-    '横になったままで大丈夫です。眠ろうと努力しなくてもかまいません。',
-    '今は、ただ音と身体の感覚に少しだけ注意を預けます。'
+    'ここからは、身体をベッドにあずけて、静かに休む時間です。',
+    'やわらかな音と、呼吸の流れを、そっと感じていきます。'
   ];
   const breath=[
-    '呼吸を少しだけゆっくりしてみます。息は止めません。',
-    '楽な範囲で吸って、吐く息を少しだけ長くします。',
-    '苦しく感じたら、合図に合わせず、自然な呼吸に戻してください。',
-    '次の数呼吸も、楽な速さのままで大丈夫です。'
+    'いつもの呼吸が、静かに続いています。',
+    '吸う息がやさしく入り、吐く息とともに、身体がゆったり広がります。',
+    'あなたにちょうどよい速さで、呼吸が穏やかに流れています。',
+    '吐く息のたびに、身体がベッドへ、やわらかくあずけられていきます。'
   ];
   const body=[
-    '背中がベッドに触れている感覚を、少しだけ感じます。',
-    '肩の重さを、そのまま感じます。変えなくて大丈夫です。',
-    '手の重さを感じます。',
-    '脚がベッドに預けられている感覚を感じます。',
-    '顔まわりは、力を抜こうとせず、そのままで大丈夫です。'
+    '背中に、ベッドのやわらかな支えを感じます。',
+    '肩の重さが、ゆっくりとベッドへ広がります。',
+    '手のひらと指先が、静かに休んでいます。',
+    '脚全体が、ゆったりと支えられています。',
+    '額、まぶた、頬が、なめらかにゆるんでいきます。'
   ];
-  const images=[['白い','石'],['小さな','木の箱'],['丸い','窓'],['薄い','雲'],['紙の','舟'],['木の','椅子'],['静かな','葉'],['白い','布'],['小さな','橋'],['ガラスの','コップ'],['遠い','丘'],['丸い','皿'],['細い','枝'],['灰色の','小石'],['木の','扉'],['淡い','霧'],['小さな','棚'],['乾いた','葉'],['低い','塀'],['白い','貝殻'],['静かな','池'],['紙の','袋'],['細い','道'],['丸い','鏡']];
+  const images=[['白い','石'],['小さな','木の箱'],['丸い','窓'],['淡い','雲'],['紙の','舟'],['木の','椅子'],['やわらかな','葉'],['白い','布'],['小さな','橋'],['透明な','コップ'],['なだらかな','丘'],['丸い','皿'],['細い','枝'],['なめらかな','小石'],['木の','扉'],['淡い','光'],['小さな','棚'],['一枚の','葉'],['低い','塀'],['白い','貝殻'],['静かな','池'],['紙の','袋'],['細い','道'],['丸い','鏡']];
 
   function chooseVoice(){
     if(!('speechSynthesis' in window))return;
@@ -276,7 +277,7 @@ body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bot
     for(const id of enabled){const st=c,en=c+durations[id]; if(id==='arrival'){arrival.forEach((x,i)=>phraseQueue.push({t:st+12+i*34,text:x}));}
       if(id==='breath'){breath.forEach((x,i)=>phraseQueue.push({t:st+12+i*52,text:x}));}
       if(id==='body'){body.forEach((x,i)=>phraseQueue.push({t:st+12+i*42,text:x}));}
-      if(id==='imagery'){phraseQueue.push({t:st+8,text:'短い言葉を聞いたら、一瞬だけ形を思い浮かべます。はっきり見えなくても大丈夫です。次の言葉が来たら、前のイメージはそのまま手放します。'}); let tt=st+42,idx=0; while(tt<en-25){phraseQueue.push({t:tt,text:images[idx++%images.length],image:true}); const prog=(tt-st)/(en-st);tt+=lerp(8,22,prog)*(0.9+Math.random()*.2);} }
+      if(id==='imagery'){phraseQueue.push({t:st+8,text:'これから、短い言葉が、ゆっくり届きます。浮かんだ形や色を、そっと眺めます。次の言葉とともに、景色が静かに入れ替わります。'}); let tt=st+42,idx=0; while(tt<en-25){phraseQueue.push({t:tt,text:images[idx++%images.length],image:true}); const prog=(tt-st)/(en-st);tt+=lerp(8,22,prog)*(0.9+Math.random()*.2);} }
       c=en;
     }
   }
